@@ -1,6 +1,7 @@
 package com.hotel.controller;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hotel.model.Booking;
 import com.hotel.model.BookingRoom;
+import com.hotel.model.Room;
+import com.hotel.repository.RoomRepository;
 import com.hotel.service.BookingService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class BookingController {
     
     private final BookingService bookingService;
+    private final RoomRepository roomRepository;
     
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody Map<String, Object> request) {
@@ -42,24 +46,45 @@ public class BookingController {
             booking.setGuestEmail((String) request.get("guestEmail"));
             booking.setGuestPhone((String) request.get("guestPhone"));
             booking.setEmergencyContact((String) request.get("emergencyContact"));
-            booking.setGstNumber((String) request.get("gstNumber"));
-            booking.setSpecialRequests((String) request.get("specialRequests"));
             
-            // Extract rooms data
+            if (request.get("gstNumber") != null) {
+                booking.setGstNumber((String) request.get("gstNumber"));
+            }
+            if (request.get("specialRequests") != null) {
+                booking.setSpecialRequests((String) request.get("specialRequests"));
+            }
+            
+            // Extract rooms data and FETCH Room entities
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> roomsData = (List<Map<String, Object>>) request.get("rooms");
-            List<BookingRoom> rooms = roomsData.stream()
-                .map(r -> {
-                    BookingRoom br = new BookingRoom();
-                    br.setNumberOfRooms((Integer) r.get("numberOfRooms"));
-                    // Room will be set in service
-                    return br;
-                })
-                .toList();
+            List<BookingRoom> bookingRooms = new ArrayList<>();
             
-            Booking savedBooking = bookingService.createBooking(booking, rooms);
+            for (Map<String, Object> roomData : roomsData) {
+                // Get roomId and numberOfRooms
+                Long roomId = ((Number) roomData.get("roomId")).longValue();
+                Integer numberOfRooms = (Integer) roomData.get("numberOfRooms");
+                
+                // CRITICAL FIX: Fetch the actual Room entity from database
+                Room room = roomRepository.findById(roomId)
+                        .orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
+                
+                // Create BookingRoom with the actual Room entity
+                BookingRoom bookingRoom = new BookingRoom();
+                bookingRoom.setRoom(room);  // Set the complete Room entity
+                bookingRoom.setNumberOfRooms(numberOfRooms);
+                
+                bookingRooms.add(bookingRoom);
+                
+                // Set hotel from first room if not set
+                if (booking.getHotel() == null) {
+                    booking.setHotel(room.getHotel());
+                }
+            }
+            
+            Booking savedBooking = bookingService.createBooking(booking, bookingRooms);
             return ResponseEntity.ok(savedBooking);
         } catch (Exception e) {
+            e.printStackTrace(); // For debugging
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

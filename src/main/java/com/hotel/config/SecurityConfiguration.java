@@ -2,6 +2,7 @@ package com.hotel.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -33,9 +34,18 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.disable()) // Add CORS disable
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/hotels/search/**", "/api/hotels/*/details").permitAll()
+                // Public endpoints
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/hotels/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                // Admin only endpoints
+                .requestMatchers(HttpMethod.POST, "/api/hotels/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/hotels/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/hotels/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // All other requests need authentication
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

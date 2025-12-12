@@ -38,11 +38,12 @@ public class BookingService {
     @Transactional
     public Booking createBooking(Booking booking, List<BookingRoom> rooms) {
 
-        User currentUser = userService.getCurrentUser();
-        booking.setUser(currentUser);
-        booking.setBookingReference(generateBookingReference());
-        booking.setStatus(Booking.BookingStatus.PENDING);
-        booking.setPaymentStatus(Booking.PaymentStatus.PENDING);
+    User currentUser = userService.getCurrentUser();
+    booking.setUser(currentUser);
+    booking.setBookingReference(generateBookingReference());
+    booking.setBookingNumber(generateBookingReference());
+    booking.setStatus(Booking.BookingStatus.PENDING);
+    booking.setPaymentStatus(Booking.PaymentStatus.PENDING);
 
         long nights = ChronoUnit.DAYS.between(booking.getCheckInDate(), booking.getCheckOutDate());
         double totalPrice = 0.0;
