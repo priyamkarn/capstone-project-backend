@@ -81,7 +81,7 @@ public class AuthService {
         
         Map<String, Object> response = new HashMap<>();
         response.put("token", jwtToken);
-        response.put("user", user);
+        //response.put("user", user);
         return response;
     }
 }

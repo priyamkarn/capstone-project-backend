@@ -11,21 +11,42 @@ import com.hotel.model.Hotel;
 
 @Repository
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
-    List<Hotel> findByCity(String city);
+
     List<Hotel> findByCityIgnoreCase(String city);
     List<Hotel> findByPinCode(String pinCode);
     List<Hotel> findByLandmarkContainingIgnoreCase(String landmark);
-    
-    @Query("SELECT h FROM Hotel h WHERE " +
-           "LOWER(h.city) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(h.landmark) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(h.name) LIKE LOWER(CONCAT('%', :search, '%'))")
-    List<Hotel> searchHotels(@Param("search") String search);
-    
     List<Hotel> findByStarRating(Integer starRating);
     List<Hotel> findByPropertyType(Hotel.PropertyType propertyType);
-    List<Hotel> findByStarRatingGreaterThanEqual(Integer minRating);
-    
+
     @Query("SELECT h FROM Hotel h WHERE h.averageRating >= :minRating")
     List<Hotel> findByMinimumRating(@Param("minRating") Double minRating);
+
+    // ⭐ SORT BY RATING
+    List<Hotel> findAllByOrderByAverageRatingAsc();
+    List<Hotel> findAllByOrderByAverageRatingDesc();
+
+    // 💰 SORT BY PRICE (MIN ROOM PRICE)
+    @Query("""
+        SELECT DISTINCT h FROM Hotel h
+        LEFT JOIN h.rooms r
+        GROUP BY h
+        ORDER BY MIN(r.pricePerNight) ASC
+    """)
+    List<Hotel> sortByPriceAsc();
+
+    @Query("""
+        SELECT DISTINCT h FROM Hotel h
+        LEFT JOIN h.rooms r
+        GROUP BY h
+        ORDER BY MIN(r.pricePerNight) DESC
+    """)
+    List<Hotel> sortByPriceDesc();
+
+    @Query("""
+        SELECT h FROM Hotel h WHERE
+        LOWER(h.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
+        LOWER(h.city) LIKE LOWER(CONCAT('%', :search, '%')) OR
+        LOWER(h.landmark) LIKE LOWER(CONCAT('%', :search, '%'))
+    """)
+    List<Hotel> searchHotels(@Param("search") String search);
 }
