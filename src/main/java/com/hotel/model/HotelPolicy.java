@@ -2,6 +2,8 @@ package com.hotel.model;
 
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,6 +31,8 @@ public class HotelPolicy {
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
+    @JsonIgnore
+
     private Hotel hotel;
     
     // Check-in/Check-out Policies

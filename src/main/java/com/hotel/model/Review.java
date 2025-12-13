@@ -2,6 +2,8 @@ package com.hotel.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,6 +29,8 @@ public class Review {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
+    @JsonIgnore
+
     private Hotel hotel;
     
     @ManyToOne(fetch = FetchType.LAZY)
