@@ -109,4 +109,29 @@ public class HotelController {
         hotelService.deleteHotel(id);
         return ResponseEntity.ok(Map.of("message", "Hotel deleted successfully"));
     }
+    @GetMapping("/call_hotel")
+public ResponseEntity<Map<String, String>> callHotel() {
+
+    String message = """
+            📞 Need help? You can call us 24/7 at 9680528733.
+            Our team answers faster than a caffeinated squirrel! 🐿️
+
+            🚪 For any gateman issues, email our vigilant gatekeepers:
+            - Aditya (Senior Gate Guardian): aditya@gmail.com
+            - Abin (Assistant Gate Guardian): abin@gmail.com
+            They might just open the gate faster than you can say 'welcome!' 🚀
+
+            🍳 For cooking disasters, contact our kitchen chaos controllers:
+            - Chef Shresthi (Head of Not-Burning-Food): shresthi@gmail.com
+            - SBajaj (Main Kitchen Boy & Emergency Food Rescuer): sbajaj@gmail.com
+            Burnt rotis, salty curries, or mystery dishes —
+            if it’s edible, they’ll save it. If not… they’ll laugh first. 😄
+            """;
+
+    return ResponseEntity.ok(Map.of(
+            "success", "true",
+            "message", message
+    ));
+}
+
 }
