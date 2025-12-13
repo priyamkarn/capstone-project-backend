@@ -272,4 +272,19 @@ public class BookingService {
 
         invoiceRepository.save(invoice);
     }
+    public double calculateCancellationFee(Long bookingId) {
+    Booking booking = getBookingById(bookingId);
+    LocalDate today = LocalDate.now();
+    long daysBeforeCheckIn = ChronoUnit.DAYS.between(today, booking.getCheckInDate());
+
+    double finalPrice = booking.getFinalPrice();
+
+    if (daysBeforeCheckIn <= 1) {
+        return finalPrice; // 100%
+    } else if (daysBeforeCheckIn <= 3) {
+        return finalPrice * 0.5; // 50%
+    } else {
+        return finalPrice * 0.1; // 10%
+    }
+}
 }

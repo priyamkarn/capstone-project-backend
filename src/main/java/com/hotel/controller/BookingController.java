@@ -240,4 +240,20 @@ public class BookingController {
     public ResponseEntity<?> requestLateCheckOut(@PathVariable Long id) {
         return ResponseEntity.ok(Map.of("message", "Late check-out request submitted"));
     }
+
+    @GetMapping("/{id}/cancellation-fee")
+public ResponseEntity<?> getCancellationFee(@PathVariable Long id) {
+    try {
+        double fee = bookingService.calculateCancellationFee(id);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "cancellationFee", fee
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(Map.of(
+            "success", false,
+            "error", e.getMessage()
+        ));
+    }
+}
 }
