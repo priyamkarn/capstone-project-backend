@@ -89,6 +89,85 @@ public class BookingController {
         }
     }
     
+    /**
+     * Apply promo code to booking
+     * POST /api/bookings/1/apply-promo
+     * Body: {"promoCode": "WELCOME20"}
+     */
+    @PostMapping("/{bookingId}/apply-promo")
+    public ResponseEntity<?> applyPromoCode(
+            @PathVariable Long bookingId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String promoCode = request.get("promoCode");
+            Booking booking = bookingService.applyPromoCode(bookingId, promoCode);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Promo code applied successfully",
+                "booking", booking,
+                "discountAmount", booking.getDiscountAmount(),
+                "finalPrice", booking.getFinalPrice()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * Remove promo code from booking
+     * POST /api/bookings/1/remove-promo
+     */
+    @PostMapping("/{bookingId}/remove-promo")
+    public ResponseEntity<?> removePromoCode(@PathVariable Long bookingId) {
+        try {
+            Booking booking = bookingService.removePromoCode(bookingId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Promo code removed",
+                "booking", booking,
+                "finalPrice", booking.getFinalPrice()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * Apply wallet credit to booking
+     * POST /api/bookings/1/apply-wallet
+     * Body: {"amount": 1000.0}
+     */
+    @PostMapping("/{bookingId}/apply-wallet")
+    public ResponseEntity<?> applyWalletCredit(
+            @PathVariable Long bookingId,
+            @RequestBody Map<String, Double> request) {
+        try {
+            Double amount = request.get("amount");
+            Booking booking = bookingService.applyWalletCredit(bookingId, amount);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Wallet credit applied successfully",
+                "booking", booking,
+                "walletCreditUsed", amount,
+                "totalDiscount", booking.getDiscountAmount(),
+                "finalPrice", booking.getFinalPrice()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<Booking> getBookingById(@PathVariable Long id) {
         return ResponseEntity.ok(bookingService.getBookingById(id));

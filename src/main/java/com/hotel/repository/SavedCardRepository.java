@@ -10,5 +10,6 @@ import com.hotel.model.SavedCard;
 @Repository
 public interface SavedCardRepository extends JpaRepository<SavedCard, Long> {
     List<SavedCard> findByUserId(Long userId);
-    List<SavedCard> findByUserIdOrderByIsDefaultDesc(Long userId);
+    List<SavedCard> findByUserIdOrderByDefaultCardDesc(Long userId);
+
 }

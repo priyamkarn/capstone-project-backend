@@ -41,5 +41,6 @@ public class SavedCard {
     @Column(nullable = false)
     private String expiryYear;
     
-    private Boolean isDefault = false;
+    private boolean defaultCard;     
+
 }

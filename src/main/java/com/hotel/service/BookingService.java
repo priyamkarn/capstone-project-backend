@@ -14,6 +14,7 @@ import com.hotel.model.Booking;
 import com.hotel.model.BookingExtra;
 import com.hotel.model.BookingRoom;
 import com.hotel.model.Invoice;
+import com.hotel.model.PromoCode;
 import com.hotel.model.Room;
 import com.hotel.model.User;
 import com.hotel.repository.BookingRepository;
@@ -34,16 +35,17 @@ public class BookingService {
     private final HotelRepository hotelRepository;
     private final UserService userService;
     private final InvoiceRepository invoiceRepository;
+    private final PromoCodeService promoCodeService;
 
     @Transactional
     public Booking createBooking(Booking booking, List<BookingRoom> rooms) {
 
-    User currentUser = userService.getCurrentUser();
-    booking.setUser(currentUser);
-    booking.setBookingReference(generateBookingReference());
-    booking.setBookingNumber(generateBookingReference());
-    booking.setStatus(Booking.BookingStatus.PENDING);
-    booking.setPaymentStatus(Booking.PaymentStatus.PENDING);
+        User currentUser = userService.getCurrentUser();
+        booking.setUser(currentUser);
+        booking.setBookingReference(generateBookingReference());
+        booking.setBookingNumber(generateBookingReference());
+        booking.setStatus(Booking.BookingStatus.PENDING);
+        booking.setPaymentStatus(Booking.PaymentStatus.PENDING);
 
         long nights = ChronoUnit.DAYS.between(booking.getCheckInDate(), booking.getCheckOutDate());
         double totalPrice = 0.0;
@@ -80,9 +82,6 @@ public class BookingService {
         double finalPrice = totalPrice + taxAmount - discount;
         booking.setFinalPrice(finalPrice);
 
-
-        booking.setFinalPrice(finalPrice);
-
         Booking savedBooking = bookingRepository.save(booking);
 
         for (BookingRoom room : rooms) {
@@ -91,6 +90,81 @@ public class BookingService {
         }
 
         return savedBooking;
+    }
+
+    /**
+     * Apply promo code to a booking
+     */
+    @Transactional
+    public Booking applyPromoCode(Long bookingId, String promoCode) {
+        Booking booking = getBookingById(bookingId);
+        
+        // Check if booking is in valid state
+        if (booking.getStatus() != Booking.BookingStatus.PENDING) {
+            throw new RuntimeException("Cannot apply promo code to confirmed/cancelled booking");
+        }
+        
+        // Validate promo code
+        PromoCode validPromoCode = promoCodeService.validatePromoCode(promoCode, booking.getTotalPrice());
+        
+        // Calculate discount
+        Double discount = promoCodeService.calculateDiscount(validPromoCode, booking.getTotalPrice());
+        
+        // Apply discount
+        booking.setDiscountAmount(discount);
+        
+        // Recalculate final price
+        double finalPrice = booking.getTotalPrice() + booking.getTaxAmount() - discount;
+        booking.setFinalPrice(finalPrice);
+        
+        // Increment promo code usage
+        promoCodeService.incrementUsage(promoCode);
+        
+        return bookingRepository.save(booking);
+    }
+    
+    /**
+     * Remove promo code from booking
+     */
+    @Transactional
+    public Booking removePromoCode(Long bookingId) {
+        Booking booking = getBookingById(bookingId);
+        
+        // Reset discount
+        booking.setDiscountAmount(0.0);
+        
+        // Recalculate final price
+        double finalPrice = booking.getTotalPrice() + booking.getTaxAmount();
+        booking.setFinalPrice(finalPrice);
+        
+        return bookingRepository.save(booking);
+    }
+    
+    /**
+     * Apply wallet credit to a booking
+     */
+    @Transactional
+    public Booking applyWalletCredit(Long bookingId, Double amount) {
+        Booking booking = getBookingById(bookingId);
+        User currentUser = userService.getCurrentUser();
+        
+        // Check if user has enough wallet balance
+        if (currentUser.getWalletBalance() < amount) {
+            throw new RuntimeException("Insufficient wallet balance. Available: " + currentUser.getWalletBalance());
+        }
+        
+        // Deduct from wallet
+        userService.deductWalletBalance(amount);
+        
+        // Apply to booking (add to existing discount)
+        double currentDiscount = booking.getDiscountAmount() != null ? booking.getDiscountAmount() : 0.0;
+        booking.setDiscountAmount(currentDiscount + amount);
+        
+        // Recalculate final price
+        double finalPrice = booking.getTotalPrice() + booking.getTaxAmount() - booking.getDiscountAmount();
+        booking.setFinalPrice(Math.max(0, finalPrice)); // Ensure not negative
+        
+        return bookingRepository.save(booking);
     }
 
     public Booking getBookingById(Long id) {
@@ -136,6 +210,9 @@ public class BookingService {
 
         if (booking.getPaymentStatus() == Booking.PaymentStatus.PAID) {
             booking.setPaymentStatus(Booking.PaymentStatus.REFUNDED);
+            
+            // Optionally refund to wallet
+            // userService.addWalletBalance(booking.getFinalPrice());
         }
 
         return bookingRepository.save(booking);
@@ -161,7 +238,10 @@ public class BookingService {
 
         booking.setTotalPrice(newTotal);
         booking.setTaxAmount(newTotal * 0.12);
-        booking.setFinalPrice(newTotal + booking.getTaxAmount() - booking.getDiscountAmount());
+        
+        // Keep existing discount
+        double discount = booking.getDiscountAmount() != null ? booking.getDiscountAmount() : 0.0;
+        booking.setFinalPrice(newTotal + booking.getTaxAmount() - discount);
 
         return bookingRepository.save(booking);
     }
