@@ -2,7 +2,7 @@ package com.hotel.model;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +29,8 @@ public class Review {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties({"rooms", "reviews", "bookings"})
+
 
     private Hotel hotel;
     

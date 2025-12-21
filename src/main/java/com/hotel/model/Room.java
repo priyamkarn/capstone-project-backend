@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -36,7 +36,8 @@ public class Room {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties({"rooms", "reviews", "bookings"})
+
     private Hotel hotel;
     
     @Column(nullable = false)

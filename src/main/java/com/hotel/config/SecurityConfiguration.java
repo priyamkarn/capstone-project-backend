@@ -43,6 +43,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/hotels/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/hotel-policies/hotel/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/hotel-policies/hotel/**").permitAll()
             .requestMatchers("/error").permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/hotels/**").hasRole("ADMIN")

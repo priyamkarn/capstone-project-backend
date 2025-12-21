@@ -47,10 +47,12 @@ public class Booking {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore 
     private User user;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
+    @JsonIgnore 
     private Hotel hotel;
     
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)

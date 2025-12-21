@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -27,6 +30,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Hotel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -77,13 +81,17 @@ public class Hotel {
     @Column(name = "photo_url")
     private List<String> photos = new ArrayList<>();
     
+    // Completely ignore these in JSON response to avoid circular references
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Room> rooms = new ArrayList<>();
     
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
     
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Booking> bookings = new ArrayList<>();
     
     public enum PropertyType {
