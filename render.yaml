@@ -1,0 +1,48 @@
+# render.yaml
+# Place this in the root of your repository
+# This file allows Render to automatically configure your service
+
+services:
+  # Spring Boot Backend
+  - type: web
+    name: hotel-booking-backend
+    env: docker
+    region: oregon # or singapore, frankfurt, ohio
+    plan: free # or starter, standard, pro
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: main
+    
+    # Health check endpoint
+    healthCheckPath: /actuator/health
+    
+    # Environment variables
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false # Set manually in Render dashboard
+      
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      
+      - key: JWT_SECRET
+        value: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+      
+      - key: JWT_EXPIRATION
+        value: 86400000
+      
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      
+      - key: SPRING_JPA_SHOW_SQL
+        value: false # Set to false in production
+      
+      - key: LOGGING_LEVEL_COM_HOTEL
+        value: INFO # Use INFO in production, not DEBUG
+      
+      - key: SERVER_ERROR_INCLUDE_MESSAGE
+        value: always
+
+# Note: Create database separately and add connection details as environment variables

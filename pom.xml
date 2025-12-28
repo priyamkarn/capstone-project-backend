@@ -104,6 +104,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <mainClass>com.hotel.HotelBookingApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
